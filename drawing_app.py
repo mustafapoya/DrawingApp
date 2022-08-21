@@ -32,7 +32,7 @@ class FreeHandDrawing(tk.Tk):
                              state="readonly", width=3)
 
         tList.current(0)
-        tList.bind("<<ComboboxSelected>>", self._change_thicknewss)
+        tList.bind("<<ComboboxSelected>>", self._change_thickness)
         tList.grid(row=0, column=1, padx=5)
 
         tk.Button(topframe, text="Undo", bg="blue", fg="white",
@@ -48,7 +48,47 @@ class FreeHandDrawing(tk.Tk):
         self.canvas.bind("<ButtonRelease-1>", self._on_release)
         self.canvas.bind("<B1-Motion>", self._on_movement)
 
-    
+    def _change_color(self, event=None):
+        self.color = self.col_select.get()
+
+    def _change_thickness(self, event=None):
+        self.thickness = int(self.t_select.get())
+
+    def _clear(self):
+        self.canvas.delete("all")
+        self.tag = ["tag", "0"]
+
+    def _undo(self):
+        cur_tag = int(self.tag[1])
+        if cur_tag >= 1:
+            self.canvas.delete("tag" + str(cur_tag - 1))
+            self.tag = ["tag", str(cur_tag - 1)]
+
+    def _on_movement(self, event):
+        tag = "".join(self.tag)
+        x1, y1 = (event.x - self.thickness), (event.y - self.thickness)
+        x2, y2 = (event.x + self.thickness), (event.y + self.thickness)
+        event.widget.create_oval(x1, y1, x2, y2, width=0, fill=self.color, tag=tag)
+
+        if self._xold is not None and self._yold is not None:
+            self.canvas.create_oval(x1, y1, x2, y2, width=0, fill=self.color, tag=tag)
+            self.canvas.create_line(self._xold, self._yold, event.x, event.y, smooth=True,
+                                    width=2 * self.thickness, fill=self.color, tag=tag)
+
+        self._xold = event.x
+        self._yold = event.y
+
+    def _on_release(self, event):
+        self._xold = None
+        self._yold = None
+        self.tag = ["tag", str(int(self.tag[1]) + 1)]
+
+
+
+
+
+
+
 
 
 
